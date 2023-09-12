@@ -1,0 +1,44 @@
+{
+  "id": "3952009",
+  "name": "maoyan",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "2076190",
+      "name": "搜索",
+      "font_class": "sousuo",
+      "unicode": "e86e",
+      "unicode_decimal": 59502
+    },
+    {
+      "icon_id": "2578488",
+      "name": "登录",
+      "font_class": "denglu",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "6684312",
+      "name": "想看",
+      "font_class": "xiangkan",
+      "unicode": "e639",
+      "unicode_decimal": 58937
+    },
+    {
+      "icon_id": "16619219",
+      "name": "play",
+      "font_class": "play",
+      "unicode": "e6cf",
+      "unicode_decimal": 59087
+    },
+    {
+      "icon_id": "25600040",
+      "name": "评分",
+      "font_class": "pingfen",
+      "unicode": "e68e",
+      "unicode_decimal": 59022
+    }
+  ]
+}

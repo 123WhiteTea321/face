@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite + Vue</title>
+  <script type="module" src="/src/main.js"></script>
+  <script src="/models/dist/face-api.min.js"></script>
+  <script src="/models/dist/face-api.js"></script>
+
+<body>
+  <div id="app">
+  </div>
+
+  <div id="camera">
+    <button id="btn" onclick="playVideo()">click</button>
+    <video id="video" autoplay muted></video>
+    <button id="btn1" onclick="turnoff()">turn off</button>
+  </div>
+
+
+  <script>
+    // let video = document.getElementById("video")
+    // async function getCamera() {
+    //   try {
+    //     const mediaStream = await navigator.mediaDevices.getUserMedia({ video: true })  //提醒用户使用音频和视频输入设备,如相机，麦克风和视频共享
+    //     video.srcObject = mediaStream
+    //   } catch (e) {
+    //     console.error(e)
+    //   }
+    // }
+    // getCamera()
+
+
+    let video = document.getElementById("video")
+    let mediaStream //声明了一个名为 mediaStream 的变量，用于存储视频流对象。
+    // 打开摄像头
+    async function playVideo() {
+      try {
+        // 使用 navigator.mediaDevices.getUserMedia({ video: true }) 来请求用户的摄像头访问权限，
+        // 该方法返回一个 Promise 对象，并在授权后获取到视频流对象。
+        // 然后，我们将视频流对象赋值给 video 元素的 srcObject 属性，这样视频流就会显示在页面上。
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true })  //提醒用户使用音频和视频输入设备,如相机，麦克风和视频共享
+        video.srcObject = mediaStream
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    // 加载脸部模型
+    // const MODEL_PATH = '/models/weights/tiny_face_detector_model-weights_manifest.json'
+    const MODEL_PATH = '/models/weights'
+    async function loadModels() {
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_PATH);
+      await faceapi.loadTinyFaceDetectorModel(MODEL_PATH)
+      await faceapi.loadFaceLandmarkTinyModel(MODEL_PATH)
+      await faceapi.loadFaceExpressionModel(MODEL_PATH)
+      await faceapi.loadAgeGenderModel(MODEL_PATH)
+    }
+
+    // 关闭摄像头
+    function turnoff() {
+      if (mediaStream) {
+        // 通过 mediaStream.getTracks() 获取到视频流的所有轨道（tracks），并将它们保存在变量 tracks 中。
+        // 使用 forEach 循环遍历 tracks 数组中的每个轨道。对于每个轨道，我们调用 track.stop() 方法来停止流的传输。
+        // 然后，我们将视频元素的 srcObject 设置为 null，这样视频显示区域就会清空。
+        // 最后，我们将 mediaStream 变量设置为 null，以确保视频流对象被正确释放。
+        const tracks = mediaStream.getTracks();
+        tracks.forEach((track) => track.stop());
+        video.srcObject = null;
+        mediaStream = null;
+      }
+    }
+    //  人脸识别
+    async function detectFace() {
+      const { videoWidth: width, videoHeight: height } = video;
+      const canvas = faceapi.createCanvasFromMedia(video)
+      const ctx = canvas.getContext('2d')
+      document.body.append(canvas)
+
+      
+
+      setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+          .withFaceLandmarks(true)
+          .withFaceExpressions()
+          .withAgeAndGender()
+        const resizedDetections = faceapi.resizeResults(detections, { width, height })
+
+
+        // ctx.clearRect(0, 0, width, height)
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // faceapi.draw.drawFaceExpression(canvas,resizedDetections)
+        // faceapi.draw.drawFaceLandmarks(canvas,resizedDetections)
+        faceapi.draw.drawDetections(canvas, resizedDetections)
+
+        resizedDetections.forEach(result => {
+          const { age, gender, genderProbability } = result
+          new faceapi.draw.DrawTextField([
+            `${~~age}year`,
+            `${gender}{${genderProbability.toFixed(1)}}`
+          ], result.detection.box.bottomLeft).draw(canvas)
+
+        })
+      }, 200)
+
+    }
+
+    video.addEventListener("play", detectFace)
+    loadModels()
+
+
+  </script>
+</body>
+
+</html>
